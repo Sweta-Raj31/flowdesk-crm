@@ -1,0 +1,6 @@
+import express from 'express'; import Lead from '../models/Lead.js'; import {auth,roles} from '../middleware/auth.js'; import {leadSchema,validate} from '../validators.js';
+const r=express.Router(); r.use(auth);
+r.get('/',async(req,res)=>{const page=Math.max(1,+req.query.page||1),limit=Math.min(50,Math.max(1,+req.query.limit||10)),q=(req.query.q||'').trim();const filter=q?{$or:[{name:new RegExp(q,'i')},{email:new RegExp(q,'i')},{company:new RegExp(q,'i')}] }:(req.query.status?{status:req.query.status}:{});const [items,total]=await Promise.all([Lead.find(filter).select('name email company phone status source createdAt').sort({createdAt:-1}).skip((page-1)*limit).limit(limit).lean(),Lead.countDocuments(filter)]);res.json({items,total,page,pages:Math.ceil(total/limit)})});
+r.post('/',validate(leadSchema),async(req,res)=>res.status(201).json({item:await Lead.create({...req.body,owner:req.user.sub})}));
+r.put('/:id',validate(leadSchema.partial()),async(req,res)=>{const x=await Lead.findByIdAndUpdate(req.params.id,req.body,{new:true,runValidators:true}).lean();x?res.json({item:x}):res.status(404).json({message:'Lead not found'})});
+r.delete('/:id',roles('admin','manager'),async(req,res)=>{const x=await Lead.findByIdAndDelete(req.params.id);x?res.json({message:'Lead deleted'}):res.status(404).json({message:'Lead not found'})}); export default r;

@@ -1,0 +1,2 @@
+import React,{useEffect,useState}from'react';import api from'../api';
+export default function Support(){const[d,setD]=useState([]);const load=()=>api.get('/tickets').then(r=>setD(r.data.items));useEffect(load,[]);return <><h1>Support</h1><section>{d.map(x=><div className="row" key={x._id}><strong>{x.subject}</strong><span>{x.customer}</span><span>{x.priority}</span><span>{x.status}</span></div>)}</section></>}

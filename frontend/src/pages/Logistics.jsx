@@ -1,0 +1,2 @@
+import React,{useEffect,useState}from'react';import api from'../api';
+export default function Logistics(){const[d,setD]=useState([]);useEffect(()=>{api.get('/shipments').then(r=>setD(r.data.items))},[]);return <><h1>Logistics</h1><section>{d.map(x=><div className="row" key={x._id}><strong>{x.trackingNumber}</strong><span>{x.carrier}</span><span>{x.origin} → {x.destination}</span><span>{x.status}</span></div>)}</section></>}
